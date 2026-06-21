@@ -2,7 +2,7 @@
 
 A cross-agent skill that automatically captures durable knowledge during coding sessions and persists it to a plain-markdown store so future sessions remember.
 
-Works with opencode, Rovo Dev, Cursor, Claude Code, and any agent that reads `AGENTS.md`.
+Works with opencode, Rovo Dev, Cursor, Claude Code, and any agent that reads `AGENTS.md` or `CLAUDE.md`.
 
 ---
 
@@ -58,9 +58,14 @@ set up learnings
 
 Run once on each machine. The agent will:
 1. Create `~/.learnings/global.md` with the four-section skeleton
-2. Ask which agent(s) to configure (opencode, Cursor, Rovo Dev, other)
-3. Show the exact diff it will write to that agent's `AGENTS.md`
+2. Ask which agent(s) to configure — choose any combination:
+   - **opencode** → `~/.config/opencode/AGENTS.md`
+   - **Claude Code** → `~/.claude/CLAUDE.md`
+   - **Cursor / Rovo Dev / Other** → you provide the path
+3. Show the exact diff for each config file
 4. Write everything on a single confirmation
+
+> **Note:** Claude Code reads `CLAUDE.md`, not `AGENTS.md`. The same managed block is written to both — only the target file differs.
 
 ---
 

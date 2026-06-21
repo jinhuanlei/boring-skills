@@ -142,19 +142,20 @@ Read the learnings files. Flag entries that are stale (likely no longer true), c
    Which agent(s) should I wire up for auto-recall?
    (I'll add a managed block to each agent's config file so it reads your learnings at session start.)
 
-     1. opencode  → ~/.config/opencode/AGENTS.md
-     2. Cursor    → provide path (e.g. ~/.cursor/AGENTS.md)
-     3. Rovo Dev  → provide path
-     4. Other     → provide path to your global AGENTS.md
+     1. opencode     → ~/.config/opencode/AGENTS.md
+     2. Claude Code  → ~/.claude/CLAUDE.md
+     3. Cursor       → provide path (e.g. ~/.cursor/AGENTS.md)
+     4. Rovo Dev     → provide path
+     5. Other        → provide path to your global AGENTS.md or CLAUDE.md
    ```
 
-   The user may select multiple. For agents not listed, ask for the path to their global AGENTS.md. For each path provided, check whether the file exists.
+   The user may select multiple. For agents not listed, ask for the path to their global config file. For each path provided, check whether the file exists.
 
-3. For each selected agent, read its AGENTS.md (or note it's missing). Decide where to insert the managed block using judgment — the most natural placement (e.g., after an existing "Memory" or "Context" section; a sensible early position otherwise). Do not blindly append.
+3. For each selected agent, read its config file (or note it's missing). Decide where to insert the managed block using judgment — the most natural placement (e.g., after an existing "Memory" or "Context" section; a sensible early position otherwise). Do not blindly append.
 
 4. Show the user the exact diff for each file — the full new file if creating from scratch, or the inserted block if adding to an existing one. Single confirmation covers all writes.
 
-5. On confirm, write the block to each selected agent's AGENTS.md:
+5. On confirm, write the block to each selected agent's config file. The block is the same for all agents:
 
    ```markdown
    <!-- BEGIN learnings-skill (managed) -->
