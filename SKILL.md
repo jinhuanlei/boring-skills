@@ -1,7 +1,7 @@
 ---
 name: auto-learnings
 description: >
-  Auto-captures durable knowledge during coding sessions and persists it to a cross-agent markdown store so future sessions remember. Always active in every coding session — silently monitors every turn for corrections, preferences, project facts, and debug insights, proposes them for logging, and handles explicit commands: "set up learnings", "show my learnings", "review my learnings", "forget X", "migrate learnings". Trigger whenever a user corrects you ("no, use X not Y"), states a preference ("always use...", "I prefer..."), reveals a project convention or durable fact, or says anything worth not rediscovering next session — even if they never say "learning" or "memory". Capture judgment runs every turn; management commands only on explicit request.
+  Persistent cross-session memory for coding work: captures corrections, preferences, project facts, and debug insights to a markdown store (~/.learnings/ and ./.learnings/) so future sessions remember them. ALWAYS invoke this skill when the user manages their memory or learnings — "set up learnings", "show" or "list my learnings", "review my learnings", "forget X" or "remove that from learnings", and "migrate" / "import my notes or CLAUDE.md into learnings" must each trigger it. ALSO invoke it to capture knowledge mid-session: when the user corrects you ("no, use X not Y", "we use yarn not npm"), states a preference ("always use...", "I prefer...", "don't do..."), reveals a durable project fact (paths, conventions, where things live), or shares a hard-won debug insight — propose logging it, even if they never say the words "remember", "learning", or "memory". When unsure whether something is worth persisting across sessions, consult this skill.
 ---
 
 ## Activation
@@ -29,15 +29,16 @@ If `~/.learnings/` does not exist and this is the first capture attempt in the s
 
 > "Looks like auto-learnings isn't set up yet. Run setup now? (yes / no)"
 
-If yes → run Setup Mode below, then continue capture. If no → skip for this turn.
+If yes → run Setup Mode below, then continue capture. If no → skip for this turn and don't ask again this session.
 
 ### Step 2 — Route scope
 
 Apply the first matching rule:
 
-1. Learning references a specific file path, repo convention, or project-specific tool → **project** (`./.learnings/project.md`)
+1. Learning references a specific file path, repo convention, or project-specific tool **and the current directory is a git repo** → **project** (`./.learnings/project.md`)
 2. Personal style, cross-project workflow, or applies regardless of codebase → **global** (`~/.learnings/global.md`)
-3. Genuinely uncertain → ask: "Should this be project-specific or global?"
+3. Current directory is **not a git repo** → treat as a casual chat session; skip project scope entirely and route to global if the learning is worth keeping, or drop it if it's context-specific to the conversation.
+4. Genuinely uncertain → ask: "Should this be project-specific or global?"
 
 ### Step 3 — Dedup
 

@@ -23,7 +23,12 @@ done
 # Resolve target file and scope label for skeleton
 case "$SCOPE" in
   global)  TARGET="$HOME/.learnings/global.md"; SCOPE_LABEL="Global" ;;
-  project) TARGET="./.learnings/project.md";    SCOPE_LABEL="Project" ;;
+  project)
+    if ! git rev-parse --is-inside-work-tree > /dev/null 2>&1; then
+      printf 'Not a git repository — project learnings require a git-initialized project.\nThis looks like a casual session; use --scope global for cross-project knowledge, or skip logging entirely.\n' >&2
+      exit 1
+    fi
+    TARGET="./.learnings/project.md"; SCOPE_LABEL="Project" ;;
   *) printf 'Unknown --scope: %s (expected: global|project)\n' "$SCOPE" >&2; exit 1 ;;
 esac
 
