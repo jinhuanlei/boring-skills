@@ -59,19 +59,18 @@ Options: skip / overwrite / append
 
 ### Step 4 — Confirm
 
-Show the structured block and wait:
+Use the `AskUserQuestion` tool (not plain text) so the user gets a navigable option picker. Ask one question:
 
-```
-Capture learning?
-  Scope:   project
-  Section: Corrections
-  Text:    Use `rg` not `grep -r`; grep is aliased to ripgrep in this repo.
-[yes / no / edit]
-```
+- **question:** `"Capture learning? Scope: <scope> | Section: <section> | Text: <text>"`
+- **header:** `"Save learning"`
+- **options:**
+  - `{ label: "Yes", description: "Log this entry now." }`
+  - `{ label: "No", description: "Drop it silently." }`
+  - `{ label: "Edit", description: "Change the scope, section, or text before saving." }`
 
-- **yes** → proceed to step 5
-- **no** → drop silently
-- **edit** → ask "What would you like to change?" → user replies → regenerate the full block → loop until yes or no
+On **Yes** → proceed to step 5.
+On **No** → drop silently.
+On **Edit** → ask "What would you like to change?" → user replies → regenerate the full block → loop back to Step 4.
 
 ### Step 5 — Write
 
