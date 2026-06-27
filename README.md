@@ -1,12 +1,24 @@
 # boring-skills
 
-A cross-agent skill that automatically captures durable knowledge during coding sessions and persists it to a plain-markdown store so future sessions remember.
+A personal collection of agent skills I use across my own coding sessions. Each skill lives under `skills/<name>/` and is symlinked into `~/.claude/skills/` (and `~/.agents/skills/`) so any agent that discovers skills there picks it up.
 
 Works with opencode, Rovo Dev, Cursor, Claude Code, and any agent that reads `AGENTS.md` or `CLAUDE.md`.
 
 ---
 
-## How it works
+## Catalog
+
+| Skill | Description | Status |
+|-------|-------------|--------|
+| [auto-learnings](./skills/auto-learnings) | Cross-session memory: captures corrections, preferences, project facts, and debug insights to a markdown store so future sessions remember. | active |
+
+> More skills will be added over time. Each entry links to its source directory.
+
+---
+
+## auto-learnings
+
+### How it works
 
 The skill has two modes:
 
@@ -15,7 +27,7 @@ The skill has two modes:
 
 ---
 
-## Quick start
+### Quick start
 
 **First time:** say `set up learnings` — the agent will create the store and wire recall into your agent config.
 
@@ -23,9 +35,9 @@ The skill has two modes:
 
 ---
 
-## Activation modes
+### Activation modes
 
-### 1. Passive capture (always on)
+#### 1. Passive capture (always on)
 
 No trigger needed. The agent judges every turn.
 
@@ -50,7 +62,7 @@ Capture learning?
 
 ---
 
-### 2. Setup
+#### 2. Setup
 
 ```
 set up learnings
@@ -70,7 +82,7 @@ Run once on each machine. The agent will:
 
 ---
 
-### 3. List
+#### 3. List
 
 ```
 show me my learnings
@@ -82,7 +94,7 @@ Reads both `~/.learnings/global.md` and `./.learnings/project.md` and prints the
 
 ---
 
-### 4. Review
+#### 4. Review
 
 ```
 review my learnings
@@ -92,7 +104,7 @@ Reads the learnings files and flags entries that are stale, contradictory, or du
 
 ---
 
-### 5. Delete
+#### 5. Delete
 
 ```
 forget that thing about rg
@@ -104,7 +116,7 @@ Finds the matching entry, shows you the exact line, then removes it on confirmat
 
 ---
 
-### 6. Migrate
+#### 6. Migrate
 
 ```
 migrate learnings
@@ -122,7 +134,7 @@ Flow:
 
 ---
 
-## Storage
+### Storage
 
 ```
 ~/.learnings/
@@ -153,7 +165,7 @@ Entries are plain text and fully editable by hand.
 
 ---
 
-## Recall
+### Recall
 
 After setup, the managed block in `AGENTS.md` instructs the agent to read both learnings files at the start of every session. No extra commands needed — learnings are automatically in context.
 
@@ -161,7 +173,7 @@ The global block already points at `./.learnings/project.md`, so any repo's proj
 
 ---
 
-## Install
+### Install
 
 The skill lives at `~/.claude/skills/auto-learnings/` (symlinked from `skills/auto-learnings/` in this repo).
 
