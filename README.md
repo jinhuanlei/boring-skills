@@ -1,4 +1,4 @@
-# auto-learnings
+# boring-skills
 
 A cross-agent skill that automatically captures durable knowledge during coding sessions and persists it to a plain-markdown store so future sessions remember.
 
@@ -163,10 +163,16 @@ The global block already points at `./.learnings/project.md`, so any repo's proj
 
 ## Install
 
-The skill lives at `~/.claude/skills/auto-learnings/` (symlinked from this repo root).
+The skill lives at `~/.claude/skills/auto-learnings/` (symlinked from `skills/auto-learnings/` in this repo).
 
 To install on a new machine:
 
 ```sh
-ln -s /path/to/auto-learnings ~/.claude/skills/auto-learnings
+ln -s /path/to/boring-skills/skills/auto-learnings ~/.claude/skills/auto-learnings
+```
+
+Or via the skills CLI (copies `SKILL.md` + `scripts/` + `evals/` together):
+
+```sh
+npx skills add jinhuanlei/boring-skills
 ```
