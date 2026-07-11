@@ -1,5 +1,6 @@
 .DS_Store
 *.bak
+__pycache__/
 auto-learnings-workspace/
 HANDOFF.md
 docs/superpowers

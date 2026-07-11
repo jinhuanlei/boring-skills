@@ -64,6 +64,10 @@ def iso_to_ms(iso):
     except Exception:
         return None
 
+def capped_days_since(now_ms, installed_ms, tracking_since_ms):
+    """Days since install, capped by how far back the log actually observed."""
+    return int(min(now_ms - installed_ms, now_ms - tracking_since_ms) / 86400000)
+
 def compute_trend(name, all_events, window_ms):
     now_ms = time.time() * 1000
     recent = sum(1 for e in all_events if e.get("name") == name and e.get("ts", 0) >= now_ms - window_ms)
@@ -120,12 +124,15 @@ def main():
             "trend": compute_trend(name, all_events, trend_window_ms),
         })
 
+    all_log_ts = [e.get("ts", 0) for e in load_events(log_path)]
+    tracking_since_ms = min(all_log_ts) if all_log_ts else now_ms
+
     recs = []
     threshold_ms = inactive_days * 86400 * 1000
     for s in skills_out:
         installed_ms = iso_to_ms(s["installed_at"])
         if s["count"] == 0 and installed_ms and (now_ms - installed_ms) > threshold_ms:
-            days_since = int((now_ms - installed_ms) / 86400000)
+            days_since = capped_days_since(now_ms, installed_ms, tracking_since_ms)
             recs.append({"name": s["name"], "reason": "inactive", "detail": f"not used in {days_since}d"})
         elif s["trend"] == "down":
             recent = sum(1 for e in all_events if e.get("name") == s["name"] and e.get("ts", 0) >= now_ms - trend_window_ms)
