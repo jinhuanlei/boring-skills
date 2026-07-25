@@ -5,7 +5,7 @@ files:
   - scripts/
   - evals/
 description: >
-  Persistent cross-session memory for coding work: captures corrections, preferences, project facts, and debug insights to a markdown store (~/.learnings/ and ./.learnings/) so future sessions remember them. ALWAYS invoke this skill when the user manages their memory or learnings — "set up learnings", "show" or "list my learnings", "review my learnings", "forget X" or "remove that from learnings", and "migrate" / "import my notes or CLAUDE.md into learnings" must each trigger it. ALSO invoke it to capture knowledge mid-session: when the user corrects you ("no, use X not Y", "we use yarn not npm"), states a preference ("always use...", "I prefer...", "don't do..."), reveals a durable project fact (paths, conventions, where things live), or shares a hard-won debug insight — propose logging it, even if they never say the words "remember", "learning", or "memory". When unsure whether something is worth persisting across sessions, consult this skill.
+  Persistent cross-session memory for coding work: captures corrections, preferences, project facts, and debug insights to a markdown store (~/.learnings/ and ./.learnings/) so future sessions remember them. ALWAYS invoke this skill when the user manages their memory or learnings — "set up learnings", "show" or "list my learnings", "review my learnings", "forget X" or "remove that from learnings", and "migrate" / "import my notes or CLAUDE.md into learnings" must each trigger it. ALSO invoke it to capture knowledge mid-session: when the user corrects you ("no, use X not Y", "we use yarn not npm"), states a preference ("always use...", "I prefer...", "don't do..."), reveals a durable project fact (paths, conventions, where things live), or shares a hard-won debug insight — propose logging it, even if they never say the words "remember", "learning", or "memory". When unsure whether something is worth persisting across sessions, consult this skill. FINALLY, if you are about to record something in your own built-in memory store, invoke this skill first — it routes scope so the two stores don't drift apart.
 ---
 
 ## Activation
@@ -58,7 +58,11 @@ On **Project** / **Global** → write to that scope (Step 5). On **Don't save** 
 
 ### Step 3 — Dedup
 
-The learnings files are in context (loaded by the AGENTS.md recall instruction). Before writing, check whether the proposed entry covers the **same fact or rule** as an existing one, even with different wording. Lean toward flagging rather than silently writing.
+Dedup against both `~/.learnings/global.md` and `./.learnings/project.md` — a duplicate often sits in the *other* scope than the one you just routed to. They're usually already in context via the recall block, but don't assume it: `project.md` only loads if this repo was wired up in Step 6, so read whichever file you can't see. A missing file is not a duplicate-free file.
+
+Check whether the proposed entry covers the **same fact or rule** as an existing one, even with different wording. Lean toward flagging rather than silently writing.
+
+This covers the learnings files only. The native memory store in Step 5b dedups itself — Claude Code's built-in memory instructions already handle that, so don't cross-check it here.
 
 If a potential duplicate or conflict is found, show both side-by-side:
 
@@ -70,8 +74,10 @@ Options: skip / overwrite / append
 ```
 
 - **skip** — drop the proposed entry
-- **overwrite** — delete the existing line with your file tools, then write the new entry via script
-- **append** — write the new entry immediately after the existing one using your file tools directly (not the script), so they stay adjacent
+- **overwrite** — replace the existing line in place with your file tools. Don't delete-then-rerun the script: the script appends to the end of the section, so the entry would silently move.
+- **append** — write the new entry immediately after the existing one with your file tools, so they stay adjacent
+
+Both of these edit the file directly, on purpose — position matters and the script can only append. Reproduce the entry format exactly: `- [YYYY-MM-DD] (agent) text`, date from the system clock.
 
 ### Step 4 — Confirm
 
@@ -101,41 +107,15 @@ sh ~/.claude/skills/auto-learnings/scripts/log-learning.sh \
   --text    "<one-line content>"
 ```
 
-If the script exits non-zero, report the error message to the user and stop. Do not write the entry directly as a fallback — the script exists to guarantee correct formatting.
+If the script exits non-zero, report the error message to the user and stop. Don't hand-write the entry as a fallback — the script guarantees correct formatting, so a failure means something is wrong that hiding it won't fix. (Step 3's overwrite and append branches are the only sanctioned direct writes, and only because position matters there.)
 
-### Step 5b — Claude Code native memory (Claude Code agent only)
+### Step 5b — Native memory (Claude Code only, project scope only)
 
-If the current agent is **Claude Code**, also write the same learning to Claude Code's built-in memory store. This makes it available in Claude Code sessions even without the learnings-skill recall block loaded.
+If you are **Claude Code** and the entry is **project-scoped**, also save it to your own memory store using your normal memory mechanism. Your system prompt already defines the location, format, and dedup rules — follow those. Do not compute paths or invent a frontmatter schema here.
 
-Map section → memory type:
+Global-scoped entries stay in `~/.learnings/global.md` only. Claude Code mounts a single memory store per session and it is project-keyed by default, so there is no native global target to dual-write to.
 
-| auto-learnings section | Claude Code memory type |
-|------------------------|------------------------|
-| `corrections` | `feedback` |
-| `preferences` | `feedback` (or `user` if it describes the user's role/style) |
-| `facts` | `project` (project-scoped) · `reference` (global) |
-| `insights` | `feedback` |
-
-Route by scope:
-- **global** → `~/.claude/memory/` (available in every project)
-- **project** → `~/.claude/projects/<slug>/memory/` (find the slug from your system context — it's the project memory path the system prompt references)
-
-Write a memory file to the appropriate directory using the standard frontmatter format:
-
-```markdown
----
-name: <kebab-slug>
-description: <one-line summary>
-metadata:
-  type: <feedback|user|project|reference>
----
-
-<same text as the auto-learnings entry>
-```
-
-Then add a pointer line to `MEMORY.md` in the same directory.
-
-Skip this step silently if running as any other agent (opencode, Rovo Dev, Cursor, etc.) — they have no Claude Code memory store.
+Skip silently if you have no memory store, or if you are any other agent (opencode, Rovo Dev, Cursor, etc.).
 
 ### Step 6 — Offer project recall wiring (first project capture only)
 
@@ -187,6 +167,7 @@ Read the learnings files. Flag entries that are stale (likely no longer true), c
 2. Show the exact line: `Found: - [2026-06-15] (opencode) ...`
 3. Confirm: "Delete this entry? yes / no"
 4. On yes, remove the line with your file tools. The script handles writes only — not deletions.
+5. If you are Claude Code and the entry was project-scoped, Step 5b may have written a matching memory file. Look for it in your memory store and delete it too, along with its `MEMORY.md` pointer line. Dual-write without dual-delete is what makes the two stores drift.
 
 ## Setup mode
 
@@ -219,7 +200,7 @@ Read the learnings files. Flag entries that are stale (likely no longer true), c
 
      1. opencode     → ~/.config/opencode/AGENTS.md
      2. Claude Code  → ~/.claude/CLAUDE.md
-     3. Rovo Dev     → ~/.rovodev/AGENTS.md
+     3. Rovo Dev     → ~/.rovo/AGENTS.md
      4. Cursor       → provide path (e.g. ~/.cursor/AGENTS.md)
      5. Other        → provide path to your global AGENTS.md or CLAUDE.md
    ```
@@ -228,7 +209,7 @@ Read the learnings files. Flag entries that are stale (likely no longer true), c
 
 3. For each selected agent, read its config file (or note it's missing). Decide where to insert the managed block using judgment — the most natural placement (e.g., after an existing "Memory" or "Context" section; a sensible early position otherwise). Do not blindly append.
 
-4. Show the user the exact diff for each file — the full new file if creating from scratch, or the inserted block if adding to an existing one. Single confirmation covers all writes.
+4. **Plan every write, then confirm once.** Work out everything steps 5–7 will touch before asking: the managed blocks, the Claude Code reverse pointer, and any legacy cleanup. Present them together — a diff per file (the full new file if creating from scratch, the inserted block if adding to an existing one) and an explicit list of anything you'd delete. One confirmation covers all of it; don't ask again inside steps 5–7.
 
 5. On confirm, write the block to each selected agent's config file. The block is the same for all agents:
 
@@ -246,6 +227,21 @@ Read the learnings files. Flag entries that are stale (likely no longer true), c
    <!-- END learnings-skill -->
    ```
 
+6. **Claude Code only — reverse pointer.** If Claude Code was among the selected agents, also write `~/.claude/rules/auto-learnings.md` (a user-scope rules file, loaded every session alongside `~/.claude/CLAUDE.md`). Show it in the same diff as step 4. Create the file with exactly:
+
+   ```markdown
+   Before writing a memory file, invoke the `auto-learnings` skill to route scope.
+   ```
+
+   This catches the other direction — Claude Code deciding to save a memory on its own — so native writes go through scope routing instead of around it. Skip if the file already exists.
+
+7. **Legacy cleanup.** If `~/.claude/memory/` exists, an earlier version of this skill created it — Claude Code never reads that path, so anything in there is invisible. Migrate and remove it:
+
+   - Read every `*.md` in it except `MEMORY.md`. For each, log the content to `~/.learnings/global.md` via `log-learning.sh --scope global`, skipping anything already present there.
+   - Then delete the files and the directory.
+
+   Both actions must appear in step 4's preview — the migrated entries and the deletion list — so they're covered by the same confirmation. Skip silently if the directory doesn't exist; most setups won't have it.
+
 ## Migrate mode
 
 **Triggers:** "migrate learnings" / "import my notes into learnings" / "import CLAUDE.md"
@@ -254,7 +250,7 @@ Read the learnings files. Flag entries that are stale (likely no longer true), c
 
 1. **Identify source** — the path the user provides, or auto-detect common ones: `~/.claude/CLAUDE.md`, old-format `~/.learnings/*.md`, project notes.
 
-2. **Read & extract** — pull individual knowledge items from the source text.
+2. **Read & extract** — pull individual knowledge items from the source text. Skip anything between `<!-- BEGIN learnings-skill ... -->` and `<!-- END learnings-skill ... -->`: those are this skill's own managed blocks, and re-importing them turns the recall instruction into a fake "learning". Same for a `~/.claude/rules/auto-learnings.md` reverse pointer.
 
 3. **Classify & route** — assign each item to a section (corrections / preferences / facts / insights) and scope (global / project). Items that don't fit cleanly go into an **Unclassified** bucket.
 
