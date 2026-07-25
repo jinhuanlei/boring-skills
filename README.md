@@ -1,6 +1,6 @@
 # boring-skills
 
-A personal collection of agent skills I use across my own coding sessions. Each skill lives under `skills/<name>/` and is symlinked into `~/.claude/skills/` so any agent that discovers skills there picks it up.
+A personal collection of agent skills I use across my own coding sessions. Each skill lives under `skills/<name>/` and installs via the `skills` CLI into any agent that discovers skills there.
 
 Works with Claude Code, opencode, Rovo Dev, Cursor, and any agent that reads `AGENTS.md` or `CLAUDE.md`.
 
@@ -18,18 +18,19 @@ Works with Claude Code, opencode, Rovo Dev, Cursor, and any agent that reads `AG
 
 ## Install
 
-Each skill is a directory with a `SKILL.md` and optional `scripts/`. Symlink it into `~/.claude/skills/`:
+Install with [`skills`](https://www.npmjs.com/package/skills) — no clone, no manual symlinking:
 
 ```sh
-# clone the repo
-git clone https://github.com/jinhuanlei/boring-skills.git ~/boring-skills
+# install specific skills globally
+npx skills add jinhuanlei/boring-skills -g -s auto-learnings,usage-lens
 
-# symlink whichever skills you want
-ln -s ~/boring-skills/skills/auto-learnings ~/.claude/skills/auto-learnings
-ln -s ~/boring-skills/skills/usage-lens     ~/.claude/skills/usage-lens
+# install everything globally
+npx skills add jinhuanlei/boring-skills -g --all
 ```
 
-Some skills need one-time setup after symlinking — check the individual guide.
+Drop `-g` to install into the current project instead. Use `npx skills add jinhuanlei/boring-skills -l` to list available skills without installing.
+
+Some skills need one-time setup after installing — check the individual guide.
 
 ---
 
