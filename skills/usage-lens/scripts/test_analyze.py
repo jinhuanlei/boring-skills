@@ -20,3 +20,22 @@ if __name__ == "__main__":
     test_caps_at_tracking_window_when_installed_long_before_logging()
     test_uses_install_age_when_tracking_predates_install()
     print("ok")
+
+
+def test_strip_usage_lens():
+    from setup import strip_usage_lens
+    hooks = {
+        "UserPromptSubmit": [{"hooks": [
+            {"command": "python /x/usage-lens/scripts/prompt_hook.py"},
+        ]}],
+        "PostToolUse": [
+            {"matcher": "Bash", "hooks": [{"command": "atuin hook claude-code"}]},
+            {"matcher": "Skill", "hooks": [{"command": "python /x/usage-lens/scripts/post_tool_hook.py"}]},
+        ],
+    }
+    strip_usage_lens(hooks)
+    assert "UserPromptSubmit" not in hooks, "empty event must be removed"
+    assert len(hooks["PostToolUse"]) == 1, "unrelated hooks must survive"
+    assert hooks["PostToolUse"][0]["matcher"] == "Bash"
+    strip_usage_lens(hooks)  # idempotent
+    assert len(hooks["PostToolUse"]) == 1

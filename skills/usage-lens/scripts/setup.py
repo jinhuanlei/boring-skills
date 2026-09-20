@@ -7,13 +7,14 @@ CONFIG_DIR = os.path.expanduser("~/.config/usage-lens")
 CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 HOOK_BASE = os.path.expanduser("~/.claude/skills/usage-lens/scripts")
 
+# ponytail: sys.executable, not bare "python" — macOS ships python3 only.
 NEW_HOOKS = {
     "UserPromptSubmit": [{
-        "hooks": [{"type": "command", "command": f"python {HOOK_BASE}/prompt_hook.py"}]
+        "hooks": [{"type": "command", "command": f"{sys.executable} {HOOK_BASE}/prompt_hook.py"}]
     }],
     "PostToolUse": [{
         "matcher": "Skill",
-        "hooks": [{"type": "command", "command": f"python {HOOK_BASE}/post_tool_hook.py"}]
+        "hooks": [{"type": "command", "command": f"{sys.executable} {HOOK_BASE}/post_tool_hook.py"}]
     }],
 }
 
@@ -25,33 +26,39 @@ DEFAULT_CONFIG = {
     "cleanup_keep_days": 90,
 }
 
+def strip_usage_lens(hooks):
+    """Remove every usage-lens hook from a settings hooks dict, in place."""
+    for event in list(hooks):
+        for entry in hooks[event]:
+            entry["hooks"] = [
+                h for h in entry.get("hooks", [])
+                if "usage-lens" not in h.get("command", "")
+            ]
+        hooks[event] = [e for e in hooks[event] if e.get("hooks")]
+        if not hooks[event]:
+            del hooks[event]
+    return hooks
+
 def merge_hooks():
     try:
         with open(SETTINGS) as f:
             settings = json.load(f)
     except FileNotFoundError:
         settings = {}
+    else:
+        with open(SETTINGS + ".bak", "w") as f:
+            json.dump(settings, f, indent=2)
 
-    hooks = settings.setdefault("hooks", {})
-    added = []
-
+    # ponytail: strip then re-add, so stale entries (bare `python`, moved paths)
+    # get migrated instead of duplicated.
+    hooks = strip_usage_lens(settings.setdefault("hooks", {}))
     for event, entries in NEW_HOOKS.items():
-        existing = hooks.get(event, [])
-        target_cmd = entries[0]["hooks"][0]["command"]
-        if any(
-            h.get("command") == target_cmd
-            for e in existing for h in e.get("hooks", [])
-        ):
-            print(f"  already configured: {event}")
-        else:
-            hooks.setdefault(event, []).extend(entries)
-            added.append(event)
+        hooks.setdefault(event, []).extend(entries)
 
     with open(SETTINGS, "w") as f:
         json.dump(settings, f, indent=2)
-
-    if added:
-        print(f"  hooks added: {', '.join(added)}")
+    print(f"  hooks configured: {', '.join(NEW_HOOKS)}")
+    print(f"  interpreter: {sys.executable}")
 
 def create_config():
     if os.path.exists(CONFIG_FILE):

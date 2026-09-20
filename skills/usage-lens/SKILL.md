@@ -16,7 +16,7 @@ description: >
 
 2. Run analysis:
    ```
-   python ~/.claude/skills/usage-lens/scripts/analyze.py --json
+   python3 ~/.claude/skills/usage-lens/scripts/analyze.py --json
    ```
    Parse the JSON output.
 
@@ -44,14 +44,14 @@ Recommendations
 
 ### /usage-lens setup
 
-Run `python ~/.claude/skills/usage-lens/scripts/setup.py` and relay the output to the user.
+Run `python3 ~/.claude/skills/usage-lens/scripts/setup.py` and relay the output to the user.
 
 After setup, remind the user that hooks take effect immediately (no restart needed —
 the harness reads settings.json per prompt).
 
 ### /usage-lens cleanup
 
-Run `python ~/.claude/skills/usage-lens/scripts/cleanup.py` and relay the output.
+Run `python3 ~/.claude/skills/usage-lens/scripts/cleanup.py` and relay the output.
 
 ## Error handling
 
