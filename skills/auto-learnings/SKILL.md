@@ -16,9 +16,11 @@ description: >
 
 ## What counts as a learning
 
+Capture only if it would still be true and useful in a fresh session on a different task. A question, an instruction for the current task only, or a fact tied to the current task, PR, or rollout state ("treat flag X as on") fails this test. A question that challenges your work is still a question: answer it, don't log it. When unsure, skip.
+
 | Kind | `--section` flag | Example signals |
 |------|-----------------|-----------------|
-| Correction | `corrections` | "no, use X not Y"; reverting your code; "that's wrong" |
+| Correction | `corrections` | "no, use X not Y"; reverting your code; "that's wrong, do Y" (a stated replacement) |
 | Preference | `preferences` | "I prefer…"; "always/never…"; stylistic or workflow asks |
 | Project fact | `facts` | durable truths about this repo: paths, conventions, team gotchas |
 | Debug insight | `insights` | a non-obvious root cause or fix worth not rediscovering |

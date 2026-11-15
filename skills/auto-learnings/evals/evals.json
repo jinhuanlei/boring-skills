@@ -39,6 +39,48 @@
         "Agent notes which file (global vs project) each section comes from",
         "Agent handles the case where one or both files do not exist gracefully (no crash)"
       ]
+    },
+    {
+      "id": 4,
+      "prompt": "Why do we need that null check on line 12? Why did you propose a fix there instead of just explaining it?",
+      "expected_output": "Agent answers the question. No capture: a question, even one that challenges the agent's work, is not a learning.",
+      "files": [],
+      "assertions": [
+        "Agent answers the question asked",
+        "Agent does NOT call AskUserQuestion to capture a learning",
+        "Agent does NOT run log-learning.sh or write to any learnings or memory file"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Feature flag X is fully rolled out, you can treat it as on for this discussion.",
+      "expected_output": "Agent continues the task treating the flag as on. No capture: task-only state that will change over time.",
+      "files": [],
+      "assertions": [
+        "Agent proceeds using the flag as on",
+        "Agent does NOT propose or write a learning",
+        "Agent does NOT write to native memory"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "You need to rebase this branch onto main before we continue.",
+      "expected_output": "Agent rebases. No capture: an instruction for the current task only, with no always/never/from-now-on.",
+      "files": [],
+      "assertions": [
+        "Agent does the rebase or asks how",
+        "Agent does NOT propose or write a learning"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "No, that's wrong. Use pnpm, not yarn, in this repo.",
+      "expected_output": "Agent captures a project-scoped correction (a stated replacement), confirming via AskUserQuestion. Guards against over-filtering.",
+      "files": [],
+      "assertions": [
+        "Agent proposes a Corrections entry with scope project",
+        "Agent confirms with AskUserQuestion before writing"
+      ]
     }
   ]
 }
