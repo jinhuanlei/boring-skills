@@ -29,7 +29,7 @@ Two modes:
 set up learnings
 ```
 
-Run once per machine. Creates `~/.learnings/global.md` and offers to add a recall block to your agent configs (opencode, Claude Code, Rovo Dev, Cursor, or a custom path).
+Run once per machine. Creates `~/.learnings/global.md` and offers to add a recall block to your agent configs (opencode, Claude Code, Cursor, or a custom path).
 
 > Claude Code reads `CLAUDE.md`, not `AGENTS.md`. The managed recall block is written to the right file for each agent.
 
@@ -123,7 +123,7 @@ Format:
 - [2026-06-20] (opencode) Always use const unless reassignment is needed.
 
 ## Project Facts
-- [2026-06-20] (rovo-dev) Auth tokens live in Vault at secret/app/api, not in .env.
+- [2026-06-20] (claude-code) Auth tokens live in Vault at secret/app/api, not in .env.
 
 ## Debug Insights
 - [2026-06-20] (opencode) aiohttp swallows exceptions in background tasks — must await response explicitly.

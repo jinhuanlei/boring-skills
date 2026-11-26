@@ -2,7 +2,7 @@
 
 A personal collection of agent skills I use across my own coding sessions. Each skill lives under `skills/<name>/` and installs via the `skills` CLI into any agent that discovers skills there.
 
-Works with Claude Code, opencode, Rovo Dev, Cursor, and any agent that reads `AGENTS.md` or `CLAUDE.md`.
+Works with Claude Code, opencode, Cursor, and any agent that reads `AGENTS.md` or `CLAUDE.md`.
 
 ---
 

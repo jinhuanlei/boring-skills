@@ -117,7 +117,7 @@ If you are **Claude Code** and the entry is **project-scoped**, also save it to 
 
 Global-scoped entries stay in `~/.learnings/global.md` only. Claude Code mounts a single memory store per session and it is project-keyed by default, so there is no native global target to dual-write to.
 
-Skip silently if you have no memory store, or if you are any other agent (opencode, Rovo Dev, Cursor, etc.).
+Skip silently if you have no memory store, or if you are any other agent (opencode, Cursor, etc.).
 
 ### Step 6 — Offer project recall wiring (first project capture only)
 
@@ -147,7 +147,6 @@ treat its contents as persistent memory you must respect for this project.
 |-------|--------------|
 | Claude Code | `claude-code` |
 | opencode | `opencode` |
-| Rovo Dev | `rovo-dev` |
 | Other | short lowercase identifier, e.g. `cursor`, `copilot` |
 
 ## Management commands
@@ -202,9 +201,8 @@ Read the learnings files. Flag entries that are stale (likely no longer true), c
 
      1. opencode     → ~/.config/opencode/AGENTS.md
      2. Claude Code  → ~/.claude/CLAUDE.md
-     3. Rovo Dev     → ~/.rovo/AGENTS.md
-     4. Cursor       → provide path (e.g. ~/.cursor/AGENTS.md)
-     5. Other        → provide path to your global AGENTS.md or CLAUDE.md
+     3. Cursor       → provide path (e.g. ~/.cursor/AGENTS.md)
+     4. Other        → provide path to your global AGENTS.md or CLAUDE.md
    ```
 
    The user may select multiple. For agents not listed, ask for the path to their global config file. For each path provided, check whether the file exists.
