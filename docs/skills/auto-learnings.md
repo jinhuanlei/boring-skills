@@ -15,7 +15,7 @@ Two modes:
 
 ## Quick start
 
-**First time:** say `set up learnings` — the agent creates the store and wires recall into your agent config.
+**First time:** say `set up learnings` — the agent creates the store and wires recall into your agent.
 
 **After that:** just work normally. The skill watches every turn and asks before saving anything.
 
@@ -29,9 +29,7 @@ Two modes:
 set up learnings
 ```
 
-Run once per machine. Creates `~/.learnings/global.md` and offers to add a recall block to your agent configs (opencode, Claude Code, Cursor, or a custom path).
-
-> Claude Code reads `CLAUDE.md`, not `AGENTS.md`. The managed recall block is written to the right file for each agent.
+Run once per machine. Creates `~/.learnings/global.md` and wires recall into the agents you pick (see [Recall](#recall)).
 
 ---
 
@@ -135,9 +133,18 @@ Plain text, fully editable by hand.
 
 ## Recall
 
-After setup, the managed block in your agent config reads both learnings files at session start — no extra commands needed.
+Setup loads both learnings files into context automatically:
 
-The first time a project learning is captured in a new repo, the agent offers to add a recall note to `.learnings/project.md` in that repo (gitignored — never committed). Optional.
+| Agent | Mechanism |
+|-------|-----------|
+| Claude Code | `SessionStart` hook running `scripts/recall.sh` (main session only, not subagents) |
+| Codex | `SessionStart` hook running `scripts/recall.sh SessionStart`; trust it once with `/hooks` (not yet tested on a real Codex) |
+| opencode | `scripts/opencode-plugin.js` plugin, linked into `~/.config/opencode/plugins/`; re-reads the files on every turn |
+| Other | Managed text block in the agent's config file |
+
+Claude Code truncates large hook output to a short preview (seen at about 35 KB). The injected text starts with the file paths so the agent can read them in full.
+
+Check the script with `sh scripts/test-recall.sh` (needs `jq`).
 
 ---
 

@@ -17,13 +17,13 @@
     {
       "id": 2,
       "prompt": "Set up learnings for me.",
-      "expected_output": "Agent should run setup mode: create ~/.learnings/global.md with the four-section skeleton, read ~/.config/opencode/AGENTS.md, propose where to insert the managed block, show the diff, and ask for confirmation before writing anything.",
+      "expected_output": "Agent should run setup mode: create ~/.learnings/global.md with the four-section skeleton, propose linking the opencode plugin into ~/.config/opencode/plugins/, show what will change, and ask for confirmation before writing anything.",
       "files": [],
       "assertions": [
         "Agent creates or proposes creating ~/.learnings/global.md with the four-section skeleton (Corrections, Preferences, Project Facts, Debug Insights)",
-        "Agent references ~/.config/opencode/AGENTS.md as the target for the recall wiring block",
-        "Agent shows the exact content of the managed block (including BEGIN/END markers)",
-        "Agent asks for confirmation before writing to AGENTS.md",
+        "Agent targets ~/.config/opencode/plugins/auto-learnings.js as a symlink to the skill's opencode plugin",
+        "Agent does not add a managed text block for opencode",
+        "Agent asks for confirmation before creating the symlink",
         "Agent does NOT write to any file without showing the user what it will write"
       ]
     },
