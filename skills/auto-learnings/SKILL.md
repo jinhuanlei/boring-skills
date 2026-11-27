@@ -55,8 +55,8 @@ If `~/.learnings/` doesn't exist and this is the first capture in the session, a
 
 Use the first rule that matches:
 
-1. Mentions a specific file path, repo convention, or project-specific tool → **project**
-2. Personal style, cross-project workflow, or true regardless of codebase → **global**
+1. Names something in this codebase (a file, path, function, class, module, precondition, flag, or other piece of its code), a repo convention, or a project-specific tool → **project**. "The X precondition" is project even though no file is named.
+2. Personal style, cross-project workflow, or true in any codebase → **global**
 3. Genuinely unclear → ask "Should this be project-specific or global?"
 
 If the directory is **not a git repo** and the entry routes to project, ask with `AskUserQuestion` instead. Picking a location also confirms the save, so skip Step 4:
@@ -119,6 +119,10 @@ sh ~/.claude/skills/auto-learnings/scripts/log-learning.sh \
 | opencode | `opencode` |
 | Codex | `codex` |
 | Other | short lowercase name, e.g. `cursor` |
+
+Use exactly the scope, section, text, and reason the user confirmed in Step 4. If you think the scope is wrong after the user confirmed it, ask again; don't switch on your own.
+
+If a write went to the wrong place, remove only that entry with your file tools, and tell the user. Never delete a learnings file to undo a write: it may hold other entries.
 
 If the script exits non-zero, report its message and stop. Don't hand-write the entry instead: the script guarantees the format, so a failure means something is wrong.
 

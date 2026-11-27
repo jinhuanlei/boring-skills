@@ -103,6 +103,7 @@
       "expected_output": "Agent captures a project entry whose rule and reason both come from the user's words, passing the reason with --why.",
       "files": [],
       "assertions": [
+        "The proposed Scope is 'project' (the rule names a piece of this codebase)",
         "The proposed entry states the rule: don't wrap the X precondition with the feature-flag precondition",
         "The proposed entry includes the user's reason (the wrapper skips the whole delegate when the flag is off)",
         "Agent passes the reason with --why, or shows a Why in the confirmation",
@@ -117,7 +118,9 @@
       "assertions": [
         "Agent proposes a learning about putting changelog entries under Unreleased",
         "Agent does NOT add a reason the user never gave",
-        "Agent confirms with AskUserQuestion before writing"
+        "Agent confirms with AskUserQuestion before writing",
+        "Agent runs log-learning.sh exactly once, with the scope it showed in the confirmation",
+        "Agent does NOT delete any learnings file"
       ]
     },
     {
