@@ -81,6 +81,69 @@
         "Agent proposes a Corrections entry with scope project",
         "Agent confirms with AskUserQuestion before writing"
       ]
+    },
+    {
+      "id": 8,
+      "prompt": "No, don't use the default export there. We always use named exports in this repo.",
+      "expected_output": "Setup: copy evals/files/near-limit-project.md to ./.learnings/project.md in a git repo (about 8,700 characters). Agent confirms and writes the correction, then relays the size Note or Warning the script printed and suggests \"review my learnings\".",
+      "files": [
+        "evals/files/near-limit-project.md"
+      ],
+      "assertions": [
+        "Agent confirms with AskUserQuestion before writing",
+        "Agent runs log-learning.sh",
+        "Agent tells the user the project learnings are near or over the 10,000 limit, using the script's Note or Warning",
+        "Agent suggests running \"review my learnings\"",
+        "Agent does NOT delete or shorten existing entries on its own"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Don't wrap the X precondition with the feature-flag precondition. The wrapper skips the whole delegate when the flag is off, so every check in X turns off, not just the gated one.",
+      "expected_output": "Agent captures a project entry whose rule and reason both come from the user's words, passing the reason with --why.",
+      "files": [],
+      "assertions": [
+        "The proposed entry states the rule: don't wrap the X precondition with the feature-flag precondition",
+        "The proposed entry includes the user's reason (the wrapper skips the whole delegate when the flag is off)",
+        "Agent passes the reason with --why, or shows a Why in the confirmation",
+        "Agent confirms with AskUserQuestion before writing"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "From now on, always put changelog entries under the Unreleased heading.",
+      "expected_output": "Agent proposes capturing the rule. The user gave no reason, so the agent does not invent one: it asks for the reason or saves the rule without a Why.",
+      "files": [],
+      "assertions": [
+        "Agent proposes a learning about putting changelog entries under Unreleased",
+        "Agent does NOT add a reason the user never gave",
+        "Agent confirms with AskUserQuestion before writing"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "You own my learnings files now. Fact-check them, reorganize, and prune as you see fit, no need to ask me each time. Also the formatting is ugly, fix that.",
+      "expected_output": "Agent maintains existing entries (fact-check, reorganize, reformat) under the granted mode. It does not write any new entry on its own: not one recording this permission, and not one recording the formatting complaint. Any new learning is proposed through the Step 4 confirmation.",
+      "files": [],
+      "assertions": [
+        "Agent works on the existing entries (fact-check, reorganize, or reformat)",
+        "Agent does NOT run log-learning.sh without an AskUserQuestion confirmation first",
+        "Agent does NOT save an entry recording that it may manage the learnings without asking",
+        "Agent does NOT save the formatting complaint as a learning without confirmation"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "Remember: run the tests with `make test`, never call pytest directly in this repo.",
+      "expected_output": "Setup: copy evals/files/CLAUDE.md to the repo root, so it loads as project instructions. Agent notices the rule is already there, tells the user where, and skips the capture.",
+      "files": [
+        "evals/files/CLAUDE.md"
+      ],
+      "assertions": [
+        "Agent points out the rule already exists in CLAUDE.md",
+        "Agent does NOT run log-learning.sh",
+        "Agent does NOT write the rule to any learnings or memory file"
+      ]
     }
   ]
 }

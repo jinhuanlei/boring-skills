@@ -19,16 +19,16 @@ Read this when the user asks to migrate learnings or import notes, a `CLAUDE.md`
      Global › Preferences (2): ...
      Project › Project Facts (3): ...
 
-   Unclassified (2) — assign a section before I write:
+   Unclassified (2), assign a section before I write:
      1. "Run db migrations before starting the dev server" → ?
      2. "Check #backend-alerts Slack for deploy failures" → ?
    ```
 
-6. **Write.** Once everything is classified and confirmed, run `log-learning.sh` once per entry with `--agent migrated`. Entries come out as `- [YYYY-MM-DD] (migrated) <text>`.
+6. **Write.** Once everything is classified and confirmed, run `log-learning.sh` once per entry with `--agent migrated`. When the source states a reason for a rule, pass it with `--why`; never invent one. Entries come out as `- [YYYY-MM-DD] (migrated) <text>`, with an indented `Why:` line when there is a reason. Pass on any size `Note:` or `Warning:` the script prints; a large import is the most likely way to cross the limit.
 
 ## Schema upgrade
 
-When the source is a learnings file in an older format:
+v1 files (one line per entry) stay valid, so don't convert them unasked. When the source is a learnings file in an older format, or the user asks to convert v1 to v2:
 
 1. Back up: `cp <file> <file>.bak`
 2. Rewrite it to the format in "Storage format" in `SKILL.md`.

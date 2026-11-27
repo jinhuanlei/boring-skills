@@ -17,7 +17,8 @@ function recall(directory) {
     return execFileSync('/bin/sh', [script], {
       encoding: 'utf8',
       timeout: 5000,
-      env: { ...process.env, CLAUDE_PROJECT_DIR: directory || process.cwd() },
+      // The plugin writes into the system prompt, not a hook output, so the hook size warning doesn't apply.
+      env: { ...process.env, CLAUDE_PROJECT_DIR: directory || process.cwd(), AUTO_LEARNINGS_NO_SIZE_WARNING: '1' },
     }).trim();
   } catch {
     return '';

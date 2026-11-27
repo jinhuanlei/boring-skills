@@ -12,12 +12,14 @@ description: >
 
 # auto-learnings
 
-Two stores: `~/.learnings/global.md` (everywhere) and `./.learnings/project.md` (this repo). A recall hook or managed block loads both at session start.
+Two stores: `~/.learnings/global.md` (everywhere) and `.learnings/project.md` in the project folder. The project folder is the git root, or the nearest folder below it that already has a `.learnings/project.md`. The scripts resolve it, so you can run them from any subfolder. A recall hook or managed block loads both stores at session start.
 
 ## When to act
 
-- **Capture:** judge silently every turn. When a signal fires, capture in that same turn. Don't batch: anything not written when the session ends is lost.
-- **Management** (list, review, delete, setup, migrate): only when the user asks.
+- **Capture** (a new entry): judge silently every turn. When a signal fires, capture in that same turn. Don't batch: anything not written when the session ends is lost.
+- **Maintenance** (list, review, edit, move, merge, delete, setup, migrate): only when the user asks.
+
+Permission for maintenance never covers capture. If the user lets you reorganize or prune their learnings, every new entry still goes through Step 4, including one that would record that permission or a complaint. Never save a learning that grants you permission to do something: an entry like that approves itself.
 
 ## What counts as a learning
 
@@ -30,15 +32,26 @@ Capture only what would still be true and useful in a fresh session on a differe
 | Project fact | `facts` | durable truths about this repo: paths, conventions, team gotchas |
 | Debug insight | `insights` | a non-obvious root cause or fix worth not rediscovering |
 
+## Entry shape
+
+An entry is a rule plus its reason. A later agent with only the rule follows it blindly, or drops it when it looks odd. With the reason, it can apply the rule to cases the author never saw.
+
+- `--text`: the rule. If it applies only in some cases, say when in the rule itself ("In migration files, …").
+- `--why`: the reason. Leave it out only when the rule shows its own reason.
+
+Take the reason from what the user said. Never invent one. If the user gave none and you can't tell, ask once, or save without it.
+
+Keep text and reason together under about 400 characters. If an entry needs more (steps, code, several cases), put the detail in a separate file that loads on demand, and save a short entry pointing to it.
+
 ## Capture flow
 
 Do these steps in the turn the signal fires. Use `AskUserQuestion` for Step 2's non-git choice and Step 4, so the user gets a picker. The rare `skip / overwrite / append` and `yes / no` prompts can be plain text.
 
-### Step 1 — Check setup
+### Step 1: Check setup
 
 If `~/.learnings/` doesn't exist and this is the first capture in the session, ask: "Looks like auto-learnings isn't set up yet. Run setup now? (yes / no)". On yes, follow `references/setup.md`, then continue. On no, skip and don't ask again this session.
 
-### Step 2 — Route scope
+### Step 2: Route scope
 
 Use the first rule that matches:
 
@@ -48,17 +61,19 @@ Use the first rule that matches:
 
 If the directory is **not a git repo** and the entry routes to project, ask with `AskUserQuestion` instead. Picking a location also confirms the save, so skip Step 4:
 
-- **question:** `"Heads up — this isn't a git repo, so project learnings would just sit in a ./.learnings/ folder here. Where should this <text> go?"`
+- **question:** `"Heads up: this isn't a git repo, so project learnings would just sit in a .learnings/ folder here. Where should this <text> go?"`
 - **header:** `"Learning scope"`
-- **options:** `Project` (save to `./.learnings/project.md` here), `Global` (save to `~/.learnings/global.md`), `Don't save` (drop it)
+- **options:** `Project` (save to `.learnings/project.md` here), `Global` (save to `~/.learnings/global.md`), `Don't save` (drop it)
 
 An **Other** answer is edit instructions, handled as in Step 4.
 
-### Step 3 — Dedup
+### Step 3: Dedup
 
-Check both files: a duplicate often sits in the other scope. They are usually in context already, but read any file you can't see; a missing file is not proof of no duplicates. Flag an entry that states the **same fact or rule** in different words. Lean toward flagging. (Claude Code's native memory dedups itself; don't cross-check it.)
+Check both stores: a duplicate often sits in the other scope. Also check the always-loaded instruction files in your context: `CLAUDE.md`, `AGENTS.md`, their local variants, and user-level rules. A rule that is already there would load twice every session. The stores are usually in context already, but read any you can't see; a missing file is not proof of no duplicates. Flag an entry that states the **same fact or rule** in different words. Lean toward flagging. (Claude Code's native memory dedups itself; don't cross-check it.)
 
-On a likely duplicate or conflict, show both:
+If the duplicate is in an instruction file, tell the user where it is and skip the capture.
+
+If it is in a learnings store, show both:
 
 ```
 Possible duplicate detected:
@@ -68,31 +83,32 @@ Options: skip / overwrite / append
 ```
 
 - **skip:** drop the proposed entry.
-- **overwrite:** replace the existing line in place with your file tools.
+- **overwrite:** replace the existing entry in place with your file tools.
 - **append:** write the new entry right after the existing one with your file tools.
 
-These two branches edit the file directly because position matters and the script can only append to the end of a section. Keep the format `- [YYYY-MM-DD] (agent) text`, with the date from the system clock.
+These two branches edit the file directly because position matters and the script can only append to the end of a section. An entry is its `- [` line plus the indented lines under it. Keep the format from "Storage format" below, with the date from the system clock.
 
-### Step 4 — Confirm
+### Step 4: Confirm
+
+Before asking, check: would an agent on a different task understand why this rule exists? If not, add the reason the user gave, or ask for it (see "Entry shape").
 
 Ask one `AskUserQuestion`:
 
-- **question:** `"Capture learning? Scope: <scope> | Section: <section> | Text: <text>"`
+- **question:** `"Capture learning? Scope: <scope> | Section: <section> | Text: <text> | Why: <why or none>"`
 - **header:** `"Save learning"`
 - **options:** `Yes` (log this entry now), `No` (drop it silently)
 
 The tool adds an **Other** free-text option on its own. Treat that answer as edit instructions: apply them, then ask again.
 
-### Step 5 — Write
-
-For a project entry, first note whether `./.learnings/project.md` exists; Step 6 needs it. Then run:
+### Step 5: Write
 
 ```sh
 sh ~/.claude/skills/auto-learnings/scripts/log-learning.sh \
   --scope   <global|project> \
   --section <corrections|preferences|facts|insights> \
   --agent   <tag> \
-  --text    "<one-line content>"
+  --text    "<the rule>" \
+  --why     "<the reason>"   # optional
 ```
 
 `--agent` records who wrote the entry:
@@ -106,26 +122,30 @@ sh ~/.claude/skills/auto-learnings/scripts/log-learning.sh \
 
 If the script exits non-zero, report its message and stop. Don't hand-write the entry instead: the script guarantees the format, so a failure means something is wrong.
 
-### Step 5b — Native memory (Claude Code, project scope only)
+Pass any `Note:` or `Warning:` line from the output to the user. A size note means the store's recall output is close to or over the hosts' 10,000 limit. Past it, a host shows only a short preview and later sessions miss most entries. Suggest "review my learnings".
 
-If you are Claude Code and the entry is project-scoped, also save it with your normal memory mechanism, following your system prompt's rules. Global entries stay in `~/.learnings/global.md` only: Claude Code's memory store is per project, so there is no global target. Other agents skip this step.
+### Step 5b: Native memory (Claude Code, project scope only)
 
-### Step 6 — Project recall wiring
+Skip this step if `~/.claude/settings.json` has a `SessionStart` hook whose command contains `auto-learnings/scripts/recall.sh`. The hook already loads the project store every session, so a native copy would only drift.
 
-Only for agents without a recall hook, and only when this capture just created `./.learnings/project.md`: follow "Project recall wiring" in `references/setup.md`. Claude Code, Codex, and opencode with the hook installed skip this.
+Otherwise, if you are Claude Code and the entry is project-scoped, also save it with your normal memory mechanism, following your system prompt's rules. Global entries stay in `~/.learnings/global.md` only: Claude Code's memory store is per project, so there is no global target. Other agents skip this step.
+
+### Step 6: Project recall wiring
+
+Only for agents without a recall hook, and only when the Step 5 output started with `Created`, meaning this capture made a new project store: follow "Project recall wiring" in `references/setup.md`. Claude Code, Codex, and opencode with the hook installed skip this.
 
 ## Management commands
 
-**List** ("show my learnings"): print both files, grouped by section, saying which file each section is from.
+**List** ("show my learnings"): print both stores, grouped by section, saying which file each section is from.
 
-**Review** ("review my learnings"): flag stale, contradictory, or duplicate entries. Propose specific edits and confirm before changing anything.
+**Review** ("review my learnings"): follow `references/review.md`.
 
 **Delete** ("forget X", "remove X from learnings"):
 
-1. Find the entry and show the exact line, e.g. `Found: - [2026-06-15] (opencode) ...`
+1. Find the entry and show all of it (its `- [` line and the indented lines under it), e.g. `Found: - [2026-06-15] (opencode) ...`
 2. Ask "Delete this entry? yes / no".
-3. On yes, remove the line with your file tools (the script only writes).
-4. If you are Claude Code and the entry was project-scoped, delete the matching native memory file and its `MEMORY.md` pointer too. Writing to both stores but deleting from one makes them drift.
+3. On yes, remove the whole entry with your file tools (the script only writes), plus one blank line next to it.
+4. If you are Claude Code and the entry was project-scoped, look for a matching native memory file. Older captures made one even with the hook installed. Delete it and its `MEMORY.md` pointer too, so the stores don't drift.
 
 **Setup** ("set up learnings"): follow `references/setup.md`.
 
@@ -134,11 +154,15 @@ Only for agents without a recall hook, and only when this capture just created `
 ## Storage format
 
 ```markdown
-# Learnings — <Global|Project>
-<!-- learnings-skill schema: v1 | Entries: - [YYYY-MM-DD] (agent) text. Manual edits OK. -->
+# Learnings: <Global|Project>
+<!-- learnings-skill schema: v2 | - [YYYY-MM-DD] (agent) text, optional "  Why:" line. Edits OK. -->
 
 ## Corrections
-- [YYYY-MM-DD] (agent) one-line text
+- [YYYY-MM-DD] (agent) The rule, wrapped at 100 columns, with continuation lines
+  indented 2 spaces.
+  Why: the reason, on its own indented line.
+
+- [YYYY-MM-DD] (agent) Next entry.
 
 ## Preferences
 
@@ -146,3 +170,5 @@ Only for agents without a recall hook, and only when this capture just created `
 
 ## Debug Insights
 ```
+
+An entry runs from its `- [` line to the next `- [` line, blank line, or `## ` heading. Files in the older v1 format (one line per entry, no blank lines, a `—` in the title) stay valid. New entries are written in v2. Convert old entries only when the user asks.

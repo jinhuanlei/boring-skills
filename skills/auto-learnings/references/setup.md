@@ -4,7 +4,7 @@ Read this when the user asks to set up learnings, or when a capture finds that `
 
 ## Steps
 
-1. **Create the global store.** Write `~/.learnings/global.md` with the skeleton from "Storage format" in `SKILL.md`, using the title `# Learnings — Global`.
+1. **Create the global store.** Write `~/.learnings/global.md` with the skeleton from "Storage format" in `SKILL.md`, using the title `# Learnings: Global`.
 
 2. **Ask which agents to wire up.** Do not assume. The user may pick several:
 
@@ -19,13 +19,16 @@ Read this when the user asks to set up learnings, or when a capture finds that `
 
 3. **Prepare each selected agent.** Read the existing file first. Merge into it, and leave every other setting and hook untouched.
 
-   **Claude Code.** Add this entry to the `hooks.SessionStart` array in `~/.claude/settings.json`. It reaches the main session only, not subagents.
+   Each store gets its own hook. Both hosts limit each hook's output separately, so two hooks give each store the full 10,000 instead of sharing it. If the file already has a `SessionStart` entry whose command contains `auto-learnings/scripts/recall.sh`, replace that entry with the one below. Adding a second one would load the learnings twice.
+
+   **Claude Code.** Add this entry to the `hooks.SessionStart` array in `~/.claude/settings.json`. It reaches the main session only, not subagents. The limit is 10,000 characters per hook, counted in UTF-16 units (an emoji counts as 2), and has no setting.
 
    ```json
    {
      "matcher": "startup|resume|clear|compact",
      "hooks": [
-       { "type": "command", "command": "/bin/sh ~/.claude/skills/auto-learnings/scripts/recall.sh" }
+       { "type": "command", "command": "/bin/sh ~/.claude/skills/auto-learnings/scripts/recall.sh --scope global" },
+       { "type": "command", "command": "/bin/sh ~/.claude/skills/auto-learnings/scripts/recall.sh --scope project" }
      ]
    }
    ```
@@ -36,12 +39,15 @@ Read this when the user asks to set up learnings, or when a capture finds that `
    {
      "matcher": "startup|resume|clear|compact",
      "hooks": [
-       { "type": "command", "command": "/bin/sh <HOME>/.claude/skills/auto-learnings/scripts/recall.sh SessionStart", "timeout": 5 }
+       { "type": "command", "command": "/bin/sh <HOME>/.claude/skills/auto-learnings/scripts/recall.sh --scope global SessionStart", "timeout": 5 },
+       { "type": "command", "command": "/bin/sh <HOME>/.claude/skills/auto-learnings/scripts/recall.sh --scope project SessionStart", "timeout": 5 }
      ]
    }
    ```
 
-   If an identical entry exists, leave it byte-for-byte unchanged: Codex ties hook trust to the definition. Tell the user to run `/hooks` in Codex and trust the new hook. If it never fires, check that `config.toml` does not disable the `hooks` feature.
+   If identical entries exist, leave them byte-for-byte unchanged: Codex ties hook trust to a hash of the definition, so any change to a command needs trusting again. Tell the user to run `/hooks` in Codex and trust the new hooks. If they never fire, check that `config.toml` does not disable the `hooks` feature.
+
+   Codex limits each hook to about 2,500 tokens by default, which it estimates as bytes divided by 4. That is 10,000 bytes: about 10,000 characters of English, but only about 3,300 characters of Chinese, Japanese or Korean. A handler's `additionalContextLimit` field raises it. Don't set it by default: the size warnings should keep the output under the default, and Codex advises against `0`.
 
    **opencode.** Link the plugin. opencode loads this directory on its own, so `opencode.jsonc` needs no edit. Ask the user to restart opencode afterward.
 
@@ -52,7 +58,9 @@ Read this when the user asks to set up learnings, or when a capture finds that `
 
    **Other agents.** Insert the global managed block (below) into the agent's config file. Place it with judgment, for example after an existing "Memory" or "Context" section. Do not append it blindly to the end: the file has its own structure.
 
-4. **Plan every write, then confirm once.** Work out everything steps 5–7 will touch: hook entries, plugin links, managed blocks, the reverse pointer, removals, and legacy cleanup. Show a diff per file (the full file if it is new) and an explicit list of anything you will delete. One confirmation covers all of it.
+4. **Plan every write, then confirm once.** Work out everything steps 5–7 will touch: hook entries, plugin links, managed blocks, `@` imports to remove, the reverse pointer, and legacy cleanup. Show a diff per file (the full file if it is new) and an explicit list of anything you will delete. One confirmation covers all of it.
+
+   **Older `@` imports.** Before the hook existed, some instruction files imported the stores directly. Search the user's instruction files (`~/.claude/CLAUDE.md`, `~/.claude/rules/`, and in the current repo `CLAUDE.md`, `CLAUDE.local.md`, `AGENTS.md`, `AGENTS.local.md`) for `@` imports of `.learnings/` files, such as `@.learnings/project.md` or `@~/.learnings/global.md`. With the hook installed, each import loads the same store a second time. List the ones you find and offer to remove them. Mention the tradeoff: an import also reaches most subagents (not Explore, Plan, or web-fetch), while the hook reaches only the main session. A project file importing a file outside the project, such as `@~/.learnings/global.md`, also needs a one-time approval per project. If the user wants subagents to see the learnings, keep the import and skip that agent's hook instead.
 
 5. **Write.** Check that every edited JSON file still parses. For each agent that now has a hook or plugin, remove its old managed blocks (only the text between the markers) so learnings don't load twice. Keep a block in any file that an agent without a hook still reads. For example, opencode can read `~/.claude/CLAUDE.md` and a project `AGENTS.md`, so check who relies on a file before removing a block from it.
 
@@ -65,6 +73,14 @@ Read this when the user asks to set up learnings, or when a capture finds that `
    It catches the other direction: Claude Code deciding to save a memory on its own. Skip if the file exists.
 
 7. **Legacy cleanup.** An earlier version of this skill created `~/.claude/memory/`, which Claude Code never reads. If it exists, log each `*.md` in it except `MEMORY.md` to the global store with `log-learning.sh --scope global` (skip anything already there), then delete the files and the directory. Both actions must be in the step 4 preview. Skip silently if the directory doesn't exist.
+
+8. **Optional: check that the hook fires (Claude Code).** Offer this, and run it only on a yes, because it starts a short session that uses the user's account:
+
+   ```sh
+   claude -p "Is a section titled 'Persistent Learnings (auto-memory)' in your context? Reply YES or NO."
+   ```
+
+   Run it in a folder where a store exists. Don't add `--bare`: it skips hooks. YES means the hook is wired and runs. It doesn't show whether the output fits under the limit, because the title survives truncation. For that, run `sh ~/.claude/skills/auto-learnings/scripts/check-size.sh`. For Codex, remind the user to trust the new hooks with `/hooks` instead.
 
 ## Project recall wiring (agents without a hook)
 
@@ -87,11 +103,11 @@ Global block:
 ## Persistent Learnings (auto-memory)
 At the start of each session, read these files if they exist and treat their
 contents as persistent memory you must respect:
-- `~/.learnings/global.md` — global learnings (preferences, cross-project corrections & insights)
-- `./.learnings/project.md` — learnings specific to the current project
+- `~/.learnings/global.md`: global learnings (preferences, cross-project corrections & insights)
+- `./.learnings/project.md`: learnings specific to the current project
 
-When you learn something worth remembering — a correction, a stated preference,
-a durable project fact, or a hard-won debug insight — capture it with the
+When you learn something worth remembering (a correction, a stated preference,
+a durable project fact, or a hard-won debug insight), capture it with the
 learnings skill.
 <!-- END learnings-skill -->
 ```
