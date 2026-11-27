@@ -59,7 +59,7 @@ Hooks take effect immediately (no restart needed).
 
 ### `/usage-lens cleanup` — trim old data
 
-Removes log records and stale `/tmp` session files older than `cleanup_keep_days` (default: 90 days).
+Removes log records and stale `/tmp` session files older than `cleanup_keep_days` (default: 90 days). It does not remove or disable any skill; use [`skill-healthcheck`](../../skills/skill-healthcheck/SKILL.md) for that.
 
 ---
 

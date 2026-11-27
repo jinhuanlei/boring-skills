@@ -3,10 +3,20 @@ name: usage-lens
 description: >
   Track and analyze Claude Code skill invocations to surface usage patterns and
   recommendations. Invoke when the user types /usage-lens (with optional subcommands:
-  setup, cleanup). Shows which skills are being used, trending, or going stale.
+  setup to install the tracking hooks, cleanup to trim old usage logs; cleanup does not
+  remove skills). Shows which skills are being used, trending, or going stale.
 ---
 
 ## Modes
+
+| Command | What it does |
+|---------|--------------|
+| `/usage-lens` | Shows the usage report. Changes nothing. |
+| `/usage-lens setup` | Adds the tracking hooks to `~/.claude/settings.json` and creates a default config. |
+| `/usage-lens cleanup` | Deletes old usage log records and old temp files. Does not remove or disable any skill. |
+
+If the user wants to uninstall unused skills, that is the `skill-healthcheck` skill, not
+`cleanup`.
 
 ### /usage-lens (default — show report)
 
@@ -50,6 +60,9 @@ After setup, remind the user that hooks take effect immediately (no restart need
 the harness reads settings.json per prompt).
 
 ### /usage-lens cleanup
+
+Removes log records and `/tmp/claude-usage-lens-*.txt` files older than
+`cleanup_keep_days` (default 90). It runs without a confirmation prompt.
 
 Run `python3 ~/.claude/skills/usage-lens/scripts/cleanup.py` and relay the output.
 

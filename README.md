@@ -12,7 +12,7 @@ Works with Claude Code, opencode, Cursor, and any agent that reads `AGENTS.md` o
 |-------|-------------|------|
 | [auto-learnings](./skills/auto-learnings) | Cross-session memory: captures corrections, preferences, project facts, and debug insights so future sessions remember without re-explaining. | [Guide](./docs/skills/auto-learnings.md) |
 | [usage-lens](./skills/usage-lens) | Tracks which skills you actually invoke via hooks, then surfaces usage patterns and inactive-skill recommendations. | [Guide](./docs/skills/usage-lens.md) |
-| [skill-cleaner](./skills/skill-cleaner) | Audits installed skills for health problems and duplicates, then removes named skills only after checking what depends on them. | — |
+| [skill-healthcheck](./skills/skill-healthcheck) | Audits installed skills for health problems and duplicates, then removes named skills only after checking what depends on them. | — |
 
 ---
 

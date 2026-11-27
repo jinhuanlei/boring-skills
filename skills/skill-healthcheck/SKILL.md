@@ -1,5 +1,5 @@
 ---
-name: skill-cleaner
+name: skill-healthcheck
 description: >
   Audit installed agent skills for health problems and duplicates, then safely remove
   named skills after checking what depends on them. Invoke when the user wants to clean
